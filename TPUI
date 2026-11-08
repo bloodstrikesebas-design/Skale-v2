@@ -1,0 +1,144 @@
+local p = game:GetService("Players")
+local lp = p.LocalPlayer
+local pg = lp:WaitForChild("PlayerGui")
+
+local sg = Instance.new("ScreenGui")
+sg.Name = "TPUI"
+sg.ResetOnSpawn = false
+sg.Parent = pg
+
+local mf = Instance.new("Frame")
+mf.Size = UDim2.new(0, 220, 0, 260)
+mf.Position = UDim2.new(0.02, 0, 0.2, 0)
+mf.BackgroundColor3 = Color3.fromRGB(20, 20, 26)
+mf.BorderSizePixel = 0
+mf.Active = true
+mf.Draggable = true
+mf.Parent = sg
+
+local mfc = Instance.new("UICorner")
+mfc.CornerRadius = UDim.new(0, 8)
+mfc.Parent = mf
+
+local topBar = Instance.new("Frame")
+topBar.Size = UDim2.new(1, 0, 0, 35)
+topBar.BackgroundTransparency = 1
+topBar.Parent = mf
+
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, -70, 1, 0)
+title.Position = UDim2.new(0, 10, 0, 0)
+title.BackgroundTransparency = 1
+title.Text = "Teleport"
+title.TextColor3 = Color3.fromRGB(240, 240, 245)
+title.TextSize = 13
+title.Font = Enum.Font.GothamBold
+title.TextXAlignment = Enum.TextXAlignment.Left
+title.Parent = topBar
+
+local minBtn = Instance.new("TextButton")
+minBtn.Size = UDim2.new(0, 24, 0, 24)
+minBtn.Position = UDim2.new(1, -56, 0, 5)
+minBtn.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+minBtn.Text = "-"
+minBtn.TextColor3 = Color3.fromRGB(200, 200, 210)
+minBtn.TextSize = 14
+minBtn.Font = Enum.Font.GothamBold
+minBtn.Parent = topBar
+
+local minc = Instance.new("UICorner")
+minc.CornerRadius = UDim.new(0, 5)
+minc.Parent = minBtn
+
+local closeBtn = Instance.new("TextButton")
+closeBtn.Size = UDim2.new(0, 24, 0, 24)
+closeBtn.Position = UDim2.new(1, -28, 0, 5)
+closeBtn.BackgroundColor3 = Color3.fromRGB(180, 50, 50)
+closeBtn.Text = "X"
+closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeBtn.TextSize = 12
+closeBtn.Font = Enum.Font.GothamBold
+closeBtn.Parent = topBar
+
+local closec = Instance.new("UICorner")
+closec.CornerRadius = UDim.new(0, 5)
+closec.Parent = closeBtn
+
+local sf = Instance.new("ScrollingFrame")
+sf.Size = UDim2.new(1, -12, 1, -42)
+sf.Position = UDim2.new(0, 6, 0, 38)
+sf.BackgroundTransparency = 1
+sf.BorderSizePixel = 0
+sf.CanvasSize = UDim2.new(0, 0, 0, 0)
+sf.AutomaticCanvasSize = Enum.AutomaticSize.Y
+sf.ScrollBarThickness = 3
+sf.Parent = mf
+
+local layout = Instance.new("UIListLayout")
+layout.SortOrder = Enum.SortOrder.LayoutOrder
+layout.Padding = UDim.new(0, 4)
+layout.Parent = sf
+
+local minimized = false
+minBtn.MouseButton1Click:Connect(function()
+	minimized = not minimized
+	sf.Visible = not minimized
+	mf.Size = minimized and UDim2.new(0, 220, 0, 35) or UDim2.new(0, 220, 0, 260)
+	minBtn.Text = minimized and "+" or "-"
+end)
+
+closeBtn.MouseButton1Click:Connect(function()
+	sg:Destroy()
+end)
+
+local playerButtons = {}
+
+local function addPlayerButton(player)
+	if player == lp or playerButtons[player] then return end
+	
+	local btn = Instance.new("TextButton")
+	btn.Size = UDim2.new(1, 0, 0, 30)
+	btn.BackgroundColor3 = Color3.fromRGB(28, 28, 36)
+	btn.BorderSizePixel = 0
+	btn.Text = "  " .. player.Name
+	btn.TextColor3 = Color3.fromRGB(210, 210, 220)
+	btn.TextSize = 12
+	btn.Font = Enum.Font.GothamMedium
+	btn.TextXAlignment = Enum.TextXAlignment.Left
+	btn.Parent = sf
+
+	local bc = Instance.new("UICorner")
+	bc.CornerRadius = UDim.new(0, 5)
+	bc.Parent = btn
+
+	btn.MouseEnter:Connect(function()
+		btn.BackgroundColor3 = Color3.fromRGB(45, 45, 58)
+	end)
+	btn.MouseLeave:Connect(function()
+		btn.BackgroundColor3 = Color3.fromRGB(28, 28, 36)
+	end)
+
+	btn.MouseButton1Click:Connect(function()
+		local char = lp.Character
+		local targetChar = player.Character
+		if char and char:FindFirstChild("HumanoidRootPart") and targetChar and targetChar:FindFirstChild("HumanoidRootPart") then
+			char.HumanoidRootPart.CFrame = targetChar.HumanoidRootPart.CFrame * CFrame.new(0, 3, 3)
+		end
+	end)
+
+	playerButtons[player] = btn
+end
+
+local function removePlayerButton(player)
+	if playerButtons[player] then
+		playerButtons[player]:Destroy()
+		playerButtons[player] = nil
+	end
+end
+
+p.PlayerAdded:Connect(addPlayerButton)
+p.PlayerRemoving:Connect(removePlayerButton)
+
+for _, player in ipairs(p:GetPlayers()) do
+	addPlayerButton(player)
+end
